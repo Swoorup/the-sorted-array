@@ -1,7 +1,7 @@
 {
   "name": "@sytherax/the-sorted-array",
   "author": "Swoorup Joshi",
-  "version": "0.0.6",
+  "version": "0.0.1",
   "license": "MIT",
   "description": "Sorted array functionality",
   "main": "./dist/the-sorted-array.umd.js",
