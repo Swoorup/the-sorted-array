@@ -1,0 +1,33 @@
+{
+  "name": "the-sorted-array",
+  "version": "0.0.1",
+  "description": "Sorted array functionality",
+  "main": "dist/index.es.js",
+  "type": "module",
+  "scripts": {
+    "docs": "typedoc framefusion.ts",
+    "tsc": "tsc",
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "test": "vitest",
+    "test-ui": "vitest --ui",
+    "vite-node": "vite-node",
+    "main": " npm run build && node dist/main.es.js",
+    "main:debug": " npm run build && node --enable-source-maps --inspect-brk dist/main.es.js"
+  },
+  "dependencies": {
+    "@types/chai": "^4.3.4",
+    "@types/mocha": "^10.0.1",
+    "fp-ts": "^2.15.0",
+    "tsconfig-paths": "^4.1.2",
+    "typedoc": "^0.24.1",
+    "vite-node": "^0.29.2",
+    "vitest": "^0.29.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.14.6",
+    "@vitest/ui": "^0.29.8",
+    "typescript": "^4.9.5",
+    "vite": "^4.1.0"
+  }
+}
