@@ -4,24 +4,22 @@ import type * as NEA from "fp-ts/NonEmptyArray";
 import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
 
 export interface Range<T> {
-	/**
-	 * The from value. The start of the range.
-	 */
-	from: T;
-	/**
-	 * The to value. The end of the range.
-	 */
-	to: T;
+  /**
+   * The from value. The start of the range.
+   */
+  from: T;
+  /**
+   * The to value. The end of the range.
+   */
+  to: T;
 }
 
-export enum InsertionType {
+export enum InsertType {
   UpdateAt = 0,
   InsertAfter
 }
 
-export type InsertionPoint =
-  | { kind: InsertionType.InsertAfter; index: number }
-  | { kind: InsertionType.UpdateAt; index: number };
+export type InsertPoint = [type: InsertType, index: number]
 
 /**
  * Find insertion or update index using binary search
@@ -32,36 +30,36 @@ export type InsertionPoint =
  * @param toIndex scan to range index
  * @returns index to update at or insert after
  */
-export function findInsertionPoint<Item, Key extends number>(
+export function findInsertPoint<Item, Key extends number>(
   source: ReadonlyArray<Item>,
   select: (e: Item) => Key,
   target: Key,
   fromIndex?: number,
   toIndex?: number
-): InsertionPoint | null {
-  if (source.length == 0) return null;
+): InsertPoint | undefined {
+  if (source.length == 0) return [InsertType.UpdateAt, 0];
 
   let [leftIndex, rightIndex] = [fromIndex ?? 0, toIndex ?? source.length - 1];
   const [initialLeft, initialRight] = [select(source[leftIndex]), select(source[rightIndex])];
 
-  if (target == initialLeft) return { kind: InsertionType.UpdateAt, index: leftIndex };
-  else if (target < initialLeft) return null;
-  else if (target == initialRight) return { kind: InsertionType.UpdateAt, index: rightIndex };
-  else if (target > initialRight) return { kind: InsertionType.InsertAfter, index: rightIndex };
+  if (target == initialLeft) return [InsertType.UpdateAt, leftIndex];
+  else if (target < initialLeft) return undefined;
+  else if (target == initialRight) return [InsertType.UpdateAt, rightIndex];
+  else if (target > initialRight) return [InsertType.InsertAfter, rightIndex];
 
   while (leftIndex < rightIndex) {
     const midIdx = Math.floor((leftIndex + rightIndex) / 2);
     const mid = select(source[midIdx]);
 
-    if (mid === target) return { kind: InsertionType.UpdateAt, index: midIdx };
+    if (mid === target) return [InsertType.UpdateAt, midIdx];
     if (target < mid) rightIndex = midIdx - 1;
     else leftIndex = midIdx + 1;
   }
 
   const lastSearched = select(source[leftIndex]);
-  if (target == lastSearched) return { kind: InsertionType.UpdateAt, index: rightIndex };
-  else if (target < lastSearched) return { kind: InsertionType.InsertAfter, index: leftIndex - 1 };
-  else return { kind: InsertionType.InsertAfter, index: leftIndex };
+  if (target == lastSearched) return [InsertType.UpdateAt, rightIndex];
+  else if (target < lastSearched) return [InsertType.InsertAfter, leftIndex - 1];
+  else return [InsertType.InsertAfter, leftIndex];
 }
 
 /**
@@ -73,36 +71,36 @@ export function findInsertionPoint<Item, Key extends number>(
  * @param toIdx scan to range index
  * @returns index to update at or insert after
  */
-export function findInsertionPointReversed<Item, Key extends number>(
+export function findInsertPointReversed<Item, Key extends number>(
   source: ReadonlyArray<Item>,
   select: (item: Item) => Key,
   target: Key,
   fromIdx?: number,
   toIdx?: number
-): InsertionPoint | null {
-  if (source.length == 0) return null;
+): InsertPoint | undefined {
+  if (source.length == 0) return [InsertType.UpdateAt, 0];
 
   let [leftIdx, rightIdx] = [fromIdx ?? 0, toIdx ?? source.length - 1];
   const [initialLeft, initialRight] = [select(source[leftIdx]), select(source[rightIdx])];
 
-  if (target == initialLeft) return { kind: InsertionType.UpdateAt, index: leftIdx };
-  else if (target > initialLeft) return null;
-  else if (target == initialRight) return { kind: InsertionType.UpdateAt, index: rightIdx };
-  else if (target < initialRight) return { kind: InsertionType.InsertAfter, index: rightIdx };
+  if (target == initialLeft) return [InsertType.UpdateAt, leftIdx];
+  else if (target > initialLeft) return undefined;
+  else if (target == initialRight) return [InsertType.UpdateAt, rightIdx];
+  else if (target < initialRight) return [InsertType.InsertAfter, rightIdx];
 
   while (leftIdx < rightIdx) {
     const midIdx = Math.floor((leftIdx + rightIdx) / 2);
     const mid = select(source[midIdx]);
 
-    if (mid === target) return { kind: InsertionType.UpdateAt, index: midIdx };
+    if (mid === target) return [InsertType.UpdateAt, midIdx];
     if (target > mid) rightIdx = midIdx - 1;
     else leftIdx = midIdx + 1;
   }
 
   const lastSearched = select(source[leftIdx]);
-  if (target == lastSearched) return { kind: InsertionType.UpdateAt, index: rightIdx };
-  else if (target > lastSearched) return { kind: InsertionType.InsertAfter, index: leftIdx - 1 };
-  else return { kind: InsertionType.InsertAfter, index: leftIdx };
+  if (target == lastSearched) return [InsertType.UpdateAt, rightIdx];
+  else if (target > lastSearched) return [InsertType.InsertAfter, leftIdx - 1];
+  else return [InsertType.InsertAfter, leftIdx];
 }
 
 /**
@@ -116,15 +114,15 @@ export function searchRange<Item, Key extends number>(
   target: Item[],
   selectKeyFn: (element: Item) => Key,
   range: Range<Key>
-): Range<InsertionPoint | null> {
-  const from = findInsertionPoint(target, selectKeyFn, range.from);
+): Range<InsertPoint | undefined> {
+  const from = findInsertPoint(target, selectKeyFn, range.from);
 
   const to = pipe(
     from,
     O.fromNullable,
     O.match(
-      () => findInsertionPoint(target, selectKeyFn, range.to),
-      (v) => findInsertionPoint(target, selectKeyFn, range.to, v.index, target.length - 1)
+      () => findInsertPoint(target, selectKeyFn, range.to),
+      ([, vIndex]) => findInsertPoint(target, selectKeyFn, range.to, vIndex, target.length - 1)
     )
   );
 
@@ -151,22 +149,24 @@ export function getSpliceIndex<Item, Key extends number>(
   let rightGapToIndex: number | undefined;
 
   if (from) {
-    if (from.kind == InsertionType.InsertAfter) {
-      startIndex = from.index + 1;
-      leftGapFromIndex = from.index;
+    const [fromKind, fromIndex] = from;
+    if (fromKind == InsertType.InsertAfter) {
+      startIndex = fromIndex + 1;
+      leftGapFromIndex = fromIndex;
     } else {
-      startIndex = from.index;
+      startIndex = fromIndex;
     }
   } else {
     startIndex = 0;
   }
 
   if (to) {
-    count += to.index - startIndex;
-    if (to.index >= startIndex) count += 1;
-    if (to.kind == InsertionType.InsertAfter) {
-      if (to.index + 1 < target.length) {
-        rightGapToIndex = to.index + 1;
+    const [toKind, toIndex] = to;
+    count += toIndex - startIndex;
+    if (toIndex >= startIndex) count += 1;
+    if (toKind == InsertType.InsertAfter) {
+      if (toIndex + 1 < target.length) {
+        rightGapToIndex = toIndex + 1;
       }
     }
   } else {
@@ -204,10 +204,10 @@ export function splitByRange<Item, Key extends number>(
   const [left, fromOverlapIdx] = pipe(
     from,
     O.fromNullable,
-    O.match<InsertionPoint, [Item[], number | undefined]>(
+    O.match<InsertPoint, [Item[], number | undefined]>(
       () => [[], undefined],
-      ({ kind, index }) => {
-        if (kind == InsertionType.InsertAfter) return [source.slice(0, index + 1), index + 1];
+      ([kind, index]) => {
+        if (kind == InsertType.InsertAfter) return [source.slice(0, index + 1), index + 1];
         else return [source.slice(0, index), index];
       }
     )
@@ -216,9 +216,9 @@ export function splitByRange<Item, Key extends number>(
   const [right, toOverlapIdx] = pipe(
     to,
     O.fromNullable,
-    O.match<InsertionPoint, [Item[], number | undefined]>(
+    O.match<InsertPoint, [Item[], number | undefined]>(
       () => [source, undefined],
-      ({ index }) => {
+      ([, index]) => {
         return [source.slice(index + 1), index + 1];
       }
     )
@@ -394,9 +394,9 @@ export function trimByWindow<Item, Key extends number>(
   window: Range<Key>,
   selectKeyFn: (element: Item) => Key
 ): void {
-  const start = findInsertionPoint(target, selectKeyFn, window.from);
-  const startIndex = start?.kind == InsertionType.InsertAfter ? start.index + 1 : start?.index ?? 0;
-  const endIndex = findInsertionPoint(target, selectKeyFn, window.to, startIndex)?.index ?? target.length - 1;
+  const start = findInsertPoint(target, selectKeyFn, window.from);
+  const startIndex = start?.[0] == InsertType.InsertAfter ? start[1] + 1 : start?.[1] ?? 0;
+  const endIndex = findInsertPoint(target, selectKeyFn, window.to, startIndex)?.[1] ?? target.length - 1;
   target.splice(0, startIndex);
   target.splice(endIndex - startIndex + 1, target.length - (endIndex - startIndex + 1));
 }
