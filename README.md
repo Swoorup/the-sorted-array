@@ -3,10 +3,10 @@
 This TypeScript library provides utilities for working with sorted arrays. Here's a brief overview of the features:
 
 1. **Range**: Defines a range with start and end values.
-2. **InsertionType**: Enumerates insertion types, whether updating at an index or inserting after an index.
-3. **InsertionPoint**: Defines where and how to perform an insertion in the array.
-4. **findInsertionPoint**: Finds where an element should be inserted or updated in a sorted array.
-5. **findInsertionPointReversed**: Same as `findInsertionPoint` but for arrays sorted in reverse order.
+2. **InsertType**: Enumerates insertion types, whether updating at an index or inserting after an index.
+3. **InsertPoint**: Defines where and how to perform an insertion in the array.
+4. **findInsertPoint**: Finds where an element should be inserted or updated in a sorted array.
+5. **findInsertPointReversed**: Same as `findInsertPoint` but for arrays sorted in reverse order.
 6. **searchRange**: Finds the range of indices for insertion or update in a sorted array.
 7. **splitByRange**: Splits an array into three parts based on a specified range: non-overlapping left, overlapping, and non-overlapping right blocks.
 8. **merge**: Merges two sorted arrays into a new sorted array, resolving duplicates and optionally filtering results.
