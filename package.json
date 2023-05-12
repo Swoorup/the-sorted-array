@@ -1,7 +1,7 @@
 {
   "name": "@sytherax/the-sorted-array",
   "author": "Swoorup Joshi",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "license": "MIT",
   "description": "Sorted array functionality",
   "main": "./dist/the-sorted-array.umd.js",
@@ -13,8 +13,8 @@
   ],
   "exports": {
     ".": {
-      "require": "./dist/sorted-array.umd.js",
-      "import": "./dist/sorted-array.es.js"
+      "require": "./dist/the-sorted-array.umd.js",
+      "import": "./dist/the-sorted-array.es.js"
     }
   },
   "repository": {
