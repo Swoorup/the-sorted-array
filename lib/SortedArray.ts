@@ -1,7 +1,6 @@
-import { pipe } from "fp-ts/function";
-import * as O from "fp-ts/Option";
-import type * as NEA from "fp-ts/NonEmptyArray";
-import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
+import { pipe } from "@mobily/ts-belt";
+import { O } from "@mobily/ts-belt";
+import { A } from "@mobily/ts-belt";
 
 export interface Range<T> {
   /**
@@ -121,8 +120,8 @@ export function searchRange<Item, Key extends number>(
     from,
     O.fromNullable,
     O.match(
+      ([, vIndex]) => findInsertPoint(target, selectKeyFn, range.to, vIndex, target.length - 1),
       () => findInsertPoint(target, selectKeyFn, range.to),
-      ([, vIndex]) => findInsertPoint(target, selectKeyFn, range.to, vIndex, target.length - 1)
     )
   );
 
@@ -205,11 +204,11 @@ export function splitByRange<Item, Key extends number>(
     from,
     O.fromNullable,
     O.match<InsertPoint, [Item[], number | undefined]>(
-      () => [[], undefined],
       ([kind, index]) => {
         if (kind == InsertType.InsertAfter) return [source.slice(0, index + 1), index + 1];
         else return [source.slice(0, index), index];
-      }
+      },
+      () => [[], undefined],
     )
   );
 
@@ -217,10 +216,10 @@ export function splitByRange<Item, Key extends number>(
     to,
     O.fromNullable,
     O.match<InsertPoint, [Item[], number | undefined]>(
-      () => [source, undefined],
       ([, index]) => {
         return [source.slice(index + 1), index + 1];
-      }
+      },
+      () => [source, undefined],
     )
   );
 
@@ -230,7 +229,7 @@ export function splitByRange<Item, Key extends number>(
 
 type MergeOptions<Item, Key extends number> = {
   selectKeyFn: (item: Item) => Key,
-  resolveDuplicatesFn: (duplicates: NEA.NonEmptyArray<Item>) => Item | null,
+  resolveDuplicatesFn: (duplicates: [left: Item, right: Item]) => Item | null,
   isReversed?: boolean,
   filterResultFn?: (value: Item) => boolean
 }
@@ -370,17 +369,17 @@ export function mergeInPlaceGaplessChunk<Item, Key extends number>(
     return [];
   }
 
-  const c = chunk as RNEA.ReadonlyNonEmptyArray<Item>;
+  const c = chunk;
   const spliceResult = getSpliceIndex(target, selectKeyFn, chunkRange);
   const gaps = [] as Range<Key>[];
   if (target.length > 0) {
     if (spliceResult.leftGapFromIndex || spliceResult.leftGapFromIndex === 0) {
       const fromIndex = spliceResult.leftGapFromIndex;
-      gaps.push({ from: selectKeyFn(target[fromIndex]), to: selectKeyFn(RNEA.head(c)) });
+      gaps.push({ from: selectKeyFn(target[fromIndex]), to: selectKeyFn(A.head(c)!) });
     }
     if (spliceResult.rightGapToIndex || spliceResult.rightGapToIndex === 0) {
       const toIndex = spliceResult.rightGapToIndex;
-      gaps.push({ from: selectKeyFn(RNEA.last(c)), to: selectKeyFn(target[toIndex]) });
+      gaps.push({ from: selectKeyFn(A.last(c)!), to: selectKeyFn(target[toIndex]) });
     }
   }
 

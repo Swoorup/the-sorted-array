@@ -10,14 +10,13 @@ import {
   trimByWindow,
   mergeInPlaceGaplessChunk
 } from './SortedArray';
-import * as NEA from 'fp-ts/NonEmptyArray';
-import * as A from 'fp-ts/Array';
-import { pipe } from 'fp-ts/lib/function';
+import { pipe } from "@mobily/ts-belt";
+import { A } from "@mobily/ts-belt";
 
 const id = <T>(it: T) => it;
 
 describe('Find Insertion or Update range on Sorted Arrays.', () => {
-  const arr = NEA.range(0, 99).filter((x) => x <= 40 || x >= 60);
+  const arr = A.range(0, 99).filter((x) => x <= 40 || x >= 60);
 
   it('All before the start and non-overlapping', () => {
     const search = { from: -1, to: -1 };
@@ -40,7 +39,7 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
       from: undefined,
       to: [ InsertType.InsertAfter, 40 ]
     });
-    expect(splitByRange(arr, id, search)).toEqual([[], NEA.range(0, 40), NEA.range(60, 99)]);
+    expect(splitByRange(arr, id, search)).toEqual([[], A.range(0, 40), A.range(60, 99)]);
   });
 
   it('From before the start and to intersecting after a gap', () => {
@@ -51,8 +50,8 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
     });
     expect(splitByRange(arr, id, search)).toEqual([
       [],
-      [NEA.range(0, 40), [60]].flat(),
-      NEA.range(61, 99)
+      [A.range(0, 40), [60]].flat(),
+      A.range(61, 99)
     ]);
   });
 
@@ -81,7 +80,7 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
       from: [ InsertType.UpdateAt, 0 ],
       to: [ InsertType.UpdateAt, 0 ]
     });
-    expect(splitByRange(arr, id, search)).toEqual([[], [0], A.dropLeft(1)(arr)]);
+    expect(splitByRange(arr, id, search)).toEqual([[], [0], A.drop(1)(arr)]);
   });
 
   it('From exactly at start to next element', () => {
@@ -90,7 +89,7 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
       from: [ InsertType.UpdateAt, 0 ],
       to: [ InsertType.UpdateAt, 1 ]
     });
-    expect(splitByRange(arr, id, search)).toEqual([[], [0, 1], A.dropLeft(2)(arr)]);
+    expect(splitByRange(arr, id, search)).toEqual([[], [0, 1], A.drop(2)(arr)]);
   });
 
   it('From exactly at start to a gap', () => {
@@ -99,7 +98,7 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
       from: [ InsertType.UpdateAt, 0 ],
       to: [ InsertType.InsertAfter, 40 ]
     });
-    expect(splitByRange(arr, id, search)).toEqual([[], NEA.range(0, 40), NEA.range(60, 99)]);
+    expect(splitByRange(arr, id, search)).toEqual([[], A.range(0, 40), A.range(60, 99)]);
   });
 
   it('From exactly at start to element after a gap', () => {
@@ -110,8 +109,8 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
     });
     expect(splitByRange(arr, id, search)).toEqual([
       [],
-      [NEA.range(0, 40), [60]].flat(),
-      NEA.range(61, 99)
+      [A.range(0, 40), [60]].flat(),
+      A.range(61, 99)
     ]);
   });
 
@@ -139,7 +138,7 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
       from: [ InsertType.InsertAfter, 40 ],
       to: [ InsertType.InsertAfter, 40 ]
     });
-    expect(splitByRange(arr, id, search)).toEqual([NEA.range(0, 40), [], NEA.range(60, 99)]);
+    expect(splitByRange(arr, id, search)).toEqual([A.range(0, 40), [], A.range(60, 99)]);
   });
 
   it('From a gap to the same gap but other element', () => {
@@ -148,7 +147,7 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
       from: [ InsertType.InsertAfter, 40 ],
       to: [ InsertType.InsertAfter, 40 ]
     });
-    expect(splitByRange(arr, id, search)).toEqual([NEA.range(0, 40), [], NEA.range(60, 99)]);
+    expect(splitByRange(arr, id, search)).toEqual([A.range(0, 40), [], A.range(60, 99)]);
   });
 
   it('From a gap to the exactly at end', () => {
@@ -157,7 +156,7 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
       from: [ InsertType.InsertAfter, 40 ],
       to: [ InsertType.UpdateAt, 80 ]
     });
-    expect(splitByRange(arr, id, search)).toEqual([NEA.range(0, 40), NEA.range(60, 99), []]);
+    expect(splitByRange(arr, id, search)).toEqual([A.range(0, 40), A.range(60, 99), []]);
   });
 
   it('From a gap to the over the end', () => {
@@ -166,7 +165,7 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
       from: [ InsertType.InsertAfter, 40 ],
       to: [ InsertType.InsertAfter, 80 ]
     });
-    expect(splitByRange(arr, id, search)).toEqual([NEA.range(0, 40), NEA.range(60, 99), []]);
+    expect(splitByRange(arr, id, search)).toEqual([A.range(0, 40), A.range(60, 99), []]);
   });
 
   it('Exactly all at end', () => {
@@ -175,7 +174,7 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
       from: [ InsertType.UpdateAt, 80 ],
       to: [ InsertType.UpdateAt, 80 ]
     });
-    expect(splitByRange(arr, id, search)).toEqual([A.dropRight(1)(arr), [99], []]);
+    expect(splitByRange(arr, id, search)).toEqual([A.initOrEmpty(arr), [99], []]);
   });
 
   it('All after the end', () => {
@@ -273,19 +272,19 @@ describe('Find Insertion or Update Index Point on Sorted Arrays.', () => {
   });
 
   it('Is in exactly after a gap', () => {
-    const arr = NEA.range(0, 99).filter((x) => x <= 40 || x >= 60);
+    const arr = A.range(0, 99).filter((x) => x <= 40 || x >= 60);
     const result = findInsertPoint(arr, id, 60);
     expect(result).toEqual([ InsertType.UpdateAt, 41 ]);
   });
 
   it('Is in exactly after a gap, reversed', () => {
-    const arr = pipe(NEA.range(0, 99), A.filter((x) => x <= 40 || x >= 60), A.reverse);
+    const arr = pipe(A.range(0, 99), A.filter((x) => x <= 40 || x >= 60), A.reverse);
     const result = findInsertPointReversed(arr, id, 39);
     expect(result).toEqual([ InsertType.UpdateAt, 41 ]);
   });
 
   it('Is in middle of the array but non-existant with filtered search', () => {
-    const arr = NEA.range(0, 79).filter((x) => x <= 40 || x >= 60);
+    const arr = A.range(0, 79).filter((x) => x <= 40 || x >= 60);
     const result = findInsertPoint(arr, id, 44, 40);
     expect(result).toEqual([ InsertType.InsertAfter, 40 ]);
   });
