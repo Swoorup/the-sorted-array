@@ -8,6 +8,7 @@ This TypeScript library provides utilities for working with sorted arrays. Here'
 4. **findInsertPoint**: Finds where an element should be inserted or updated in a sorted array.
 5. **findInsertPointReversed**: Same as `findInsertPoint` but for arrays sorted in reverse order.
 6. **searchRange**: Finds the range of indices for insertion or update in a sorted array.
+6. **range**: returns an iterator for the given range in a sorted array.
 7. **splitByRange**: Splits an array into three parts based on a specified range: non-overlapping left, overlapping, and non-overlapping right blocks.
 8. **merge**: Merges two sorted arrays into a new sorted array, resolving duplicates and optionally filtering results.
 9. **mergeInPlace**: Merges two sorted arrays into one, modifying the first array in-place.

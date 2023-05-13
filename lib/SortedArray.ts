@@ -110,7 +110,7 @@ export function findInsertPointReversed<Item, Key extends number>(
  * @returns
  */
 export function searchRange<Item, Key extends number>(
-  target: Item[],
+  target: readonly Item[],
   selectKeyFn: (element: Item) => Key,
   range: Range<Key>
 ): Range<InsertPoint | undefined> {
@@ -128,6 +128,37 @@ export function searchRange<Item, Key extends number>(
   return { from, to };
 }
 
+export function* range<Item, Key extends number>(
+  target: readonly Item[],
+  selectKeyFn: (element: Item) => Key,
+  range: Range<Key>
+): Generator<Item> {
+  const { from, to } = searchRange(target, selectKeyFn, range);
+
+  if (!from || !to) {
+    return;
+  }
+
+  let startIndex = from[1];
+  let endIndex = to[1];
+
+  // Adjust the indices based on the InsertType
+  if (from[0] === InsertType.InsertAfter) {
+    startIndex += 1;
+  }
+  if (to[0] === InsertType.InsertAfter) {
+    endIndex += 1;
+  }
+
+  // Ensure that the indices are within the bounds of the array
+  startIndex = Math.min(Math.max(0, startIndex), target.length);
+  endIndex = Math.min(Math.max(0, endIndex), target.length - 1);
+
+  for (let i = startIndex; i <= endIndex; i++) {
+    yield target[i];
+  }
+}
+
 export type SpliceResult = {
   start: number,
   count: number,
@@ -136,7 +167,7 @@ export type SpliceResult = {
 }
 
 export function getSpliceIndex<Item, Key extends number>(
-  target: Item[],
+  target: readonly Item[],
   selectKeyFn: (element: Item) => Key,
   range: Range<Key>
 ): SpliceResult {

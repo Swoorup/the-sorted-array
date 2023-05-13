@@ -8,7 +8,8 @@ import {
   findInsertPointReversed,
   mergeInPlace,
   trimByWindow,
-  mergeInPlaceGaplessChunk
+  mergeInPlaceGaplessChunk,
+  range
 } from './SortedArray';
 import { pipe } from "@mobily/ts-belt";
 import { A } from "@mobily/ts-belt";
@@ -28,7 +29,7 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
     const search = { from: -1, to: 0 };
     expect(searchRange(arr, id, search)).toEqual({
       from: undefined,
-      to: [ InsertType.UpdateAt, 0 ]
+      to: [InsertType.UpdateAt, 0]
     });
     expect(splitByRange(arr, id, search)).toEqual([[], [0], arr.slice(1)]);
   });
@@ -37,7 +38,7 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
     const search = { from: -1, to: 41 };
     expect(searchRange(arr, id, search)).toEqual({
       from: undefined,
-      to: [ InsertType.InsertAfter, 40 ]
+      to: [InsertType.InsertAfter, 40]
     });
     expect(splitByRange(arr, id, search)).toEqual([[], A.range(0, 40), A.range(60, 99)]);
   });
@@ -46,7 +47,7 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
     const search = { from: -1, to: 60 };
     expect(searchRange(arr, id, search)).toEqual({
       from: undefined,
-      to: [ InsertType.UpdateAt, 41 ]
+      to: [InsertType.UpdateAt, 41]
     });
     expect(splitByRange(arr, id, search)).toEqual([
       [],
@@ -59,17 +60,16 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
     const search = { from: -1, to: 99 };
     expect(searchRange(arr, id, search)).toEqual({
       from: undefined,
-      to: [ InsertType.UpdateAt, 80 ]
+      to: [InsertType.UpdateAt, 80]
     });
     expect(splitByRange(arr, id, search)).toEqual([[], arr, []]);
   });
 
   it('Covers the entire data outside both bounds', () => {
     const search = { from: -1, to: 100 };
-    console.log(arr.length);
     expect(searchRange(arr, id, search)).toEqual({
       from: undefined,
-      to: [ InsertType.InsertAfter, 80 ]
+      to: [InsertType.InsertAfter, 80]
     });
     expect(splitByRange(arr, id, search)).toEqual([[], arr, []]);
   });
@@ -77,8 +77,8 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
   it('From exactly at start to start', () => {
     const search = { from: 0, to: 0 };
     expect(searchRange(arr, id, search)).toEqual({
-      from: [ InsertType.UpdateAt, 0 ],
-      to: [ InsertType.UpdateAt, 0 ]
+      from: [InsertType.UpdateAt, 0],
+      to: [InsertType.UpdateAt, 0]
     });
     expect(splitByRange(arr, id, search)).toEqual([[], [0], A.drop(1)(arr)]);
   });
@@ -86,8 +86,8 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
   it('From exactly at start to next element', () => {
     const search = { from: 0, to: 1 };
     expect(searchRange(arr, id, search)).toEqual({
-      from: [ InsertType.UpdateAt, 0 ],
-      to: [ InsertType.UpdateAt, 1 ]
+      from: [InsertType.UpdateAt, 0],
+      to: [InsertType.UpdateAt, 1]
     });
     expect(splitByRange(arr, id, search)).toEqual([[], [0, 1], A.drop(2)(arr)]);
   });
@@ -95,8 +95,8 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
   it('From exactly at start to a gap', () => {
     const search = { from: 0, to: 44 };
     expect(searchRange(arr, id, search)).toEqual({
-      from: [ InsertType.UpdateAt, 0 ],
-      to: [ InsertType.InsertAfter, 40 ]
+      from: [InsertType.UpdateAt, 0],
+      to: [InsertType.InsertAfter, 40]
     });
     expect(splitByRange(arr, id, search)).toEqual([[], A.range(0, 40), A.range(60, 99)]);
   });
@@ -104,8 +104,8 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
   it('From exactly at start to element after a gap', () => {
     const search = { from: 0, to: 60 };
     expect(searchRange(arr, id, search)).toEqual({
-      from: [ InsertType.UpdateAt, 0 ],
-      to: [ InsertType.UpdateAt, 41 ]
+      from: [InsertType.UpdateAt, 0],
+      to: [InsertType.UpdateAt, 41]
     });
     expect(splitByRange(arr, id, search)).toEqual([
       [],
@@ -117,8 +117,8 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
   it('From exactly at start to exactly at end', () => {
     const search = { from: 0, to: 99 };
     expect(searchRange(arr, id, search)).toEqual({
-      from: [ InsertType.UpdateAt, 0 ],
-      to: [ InsertType.UpdateAt, 80 ]
+      from: [InsertType.UpdateAt, 0],
+      to: [InsertType.UpdateAt, 80]
     });
     expect(splitByRange(arr, id, search)).toEqual([[], arr, []]);
   });
@@ -126,8 +126,8 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
   it('From exactly at start to after the end', () => {
     const search = { from: 0, to: 100 };
     expect(searchRange(arr, id, search)).toEqual({
-      from: [ InsertType.UpdateAt, 0 ],
-      to: [ InsertType.InsertAfter, 80 ]
+      from: [InsertType.UpdateAt, 0],
+      to: [InsertType.InsertAfter, 80]
     });
     expect(splitByRange(arr, id, search)).toEqual([[], arr, []]);
   });
@@ -135,8 +135,8 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
   it('From a gap to the same gap', () => {
     const search = { from: 44, to: 44 };
     expect(searchRange(arr, id, search)).toEqual({
-      from: [ InsertType.InsertAfter, 40 ],
-      to: [ InsertType.InsertAfter, 40 ]
+      from: [InsertType.InsertAfter, 40],
+      to: [InsertType.InsertAfter, 40]
     });
     expect(splitByRange(arr, id, search)).toEqual([A.range(0, 40), [], A.range(60, 99)]);
   });
@@ -144,8 +144,8 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
   it('From a gap to the same gap but other element', () => {
     const search = { from: 44, to: 45 };
     expect(searchRange(arr, id, search)).toEqual({
-      from: [ InsertType.InsertAfter, 40 ],
-      to: [ InsertType.InsertAfter, 40 ]
+      from: [InsertType.InsertAfter, 40],
+      to: [InsertType.InsertAfter, 40]
     });
     expect(splitByRange(arr, id, search)).toEqual([A.range(0, 40), [], A.range(60, 99)]);
   });
@@ -153,8 +153,8 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
   it('From a gap to the exactly at end', () => {
     const search = { from: 44, to: 99 };
     expect(searchRange(arr, id, search)).toEqual({
-      from: [ InsertType.InsertAfter, 40 ],
-      to: [ InsertType.UpdateAt, 80 ]
+      from: [InsertType.InsertAfter, 40],
+      to: [InsertType.UpdateAt, 80]
     });
     expect(splitByRange(arr, id, search)).toEqual([A.range(0, 40), A.range(60, 99), []]);
   });
@@ -162,8 +162,8 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
   it('From a gap to the over the end', () => {
     const search = { from: 44, to: 100 };
     expect(searchRange(arr, id, search)).toEqual({
-      from: [ InsertType.InsertAfter, 40 ],
-      to: [ InsertType.InsertAfter, 80 ]
+      from: [InsertType.InsertAfter, 40],
+      to: [InsertType.InsertAfter, 80]
     });
     expect(splitByRange(arr, id, search)).toEqual([A.range(0, 40), A.range(60, 99), []]);
   });
@@ -171,8 +171,8 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
   it('Exactly all at end', () => {
     const search = { from: 99, to: 99 };
     expect(searchRange(arr, id, search)).toEqual({
-      from: [ InsertType.UpdateAt, 80 ],
-      to: [ InsertType.UpdateAt, 80 ]
+      from: [InsertType.UpdateAt, 80],
+      to: [InsertType.UpdateAt, 80]
     });
     expect(splitByRange(arr, id, search)).toEqual([A.initOrEmpty(arr), [99], []]);
   });
@@ -180,11 +180,52 @@ describe('Find Insertion or Update range on Sorted Arrays.', () => {
   it('All after the end', () => {
     const search = { from: 100, to: 100 };
     expect(searchRange(arr, id, search)).toEqual({
-      from: [ InsertType.InsertAfter, 80 ],
-      to: [ InsertType.InsertAfter, 80 ]
+      from: [InsertType.InsertAfter, 80],
+      to: [InsertType.InsertAfter, 80]
     });
     expect(splitByRange(arr, id, search)).toEqual([arr, [], []]);
   });
+});
+
+describe('range iterate tests', () => {
+  type TestData = { value: number };
+
+  const selectKeyFn = (item: TestData) => item.value;
+
+  it('range - normal case', () => {
+    const data: TestData[] = [{ value: 1 }, { value: 2 }, { value: 3 }, { value: 4 }, { value: 5 }];
+    const rangeToIterate = { from: 2, to: 4 };
+    const result = Array.from(range(data, selectKeyFn, rangeToIterate));
+    expect(result).toEqual([{ value: 2 }, { value: 3 }, { value: 4 }]);
+  })
+
+  it('range - empty array', () => {
+    const data: TestData[] = [];
+    const rangeToIterate = { from: 2, to: 4 };
+    const result = Array.from(range(data, selectKeyFn, rangeToIterate));
+    expect(result).toEqual([]);
+  })
+
+  it('range - range outside of array bounds', () => {
+    const data: TestData[] = [{ value: 1 }, { value: 2 }, { value: 3 }, { value: 4 }, { value: 5 }];
+    const rangeToIterate = { from: 6, to: 8 };
+    const result = Array.from(range(data, selectKeyFn, rangeToIterate));
+    expect(result).toEqual([]);
+  })
+
+  it('range - range partially outside of array bounds', () => {
+    const data: TestData[] = [{ value: 1 }, { value: 2 }, { value: 3 }, { value: 4 }, { value: 5 }];
+    const rangeToIterate = { from: 4, to: 8 };
+    const result = Array.from(range(data, selectKeyFn, rangeToIterate));
+    expect(result).toEqual([{ value: 4 }, { value: 5 }]);
+  })
+
+  it('range - negative range', () => {
+    const data: TestData[] = [{ value: -5 }, { value: -4 }, { value: -3 }, { value: -2 }, { value: -1 }];
+    const rangeToIterate = { from: -4, to: -2 };
+    const result = Array.from(range(data, selectKeyFn, rangeToIterate));
+    expect(result).toEqual([{ value: -4 }, { value: -3 }, { value: -2 }]);
+  })
 });
 
 describe('mergeInPlace tests', () => {
@@ -258,45 +299,45 @@ describe('Find Insertion or Update Index Point on Sorted Arrays.', () => {
 
   it('Is at the start of the array', () => {
     const result = findInsertPoint(arr, id, 1);
-    expect(result).toEqual([ InsertType.UpdateAt, 0 ]);
+    expect(result).toEqual([InsertType.UpdateAt, 0]);
   });
 
   it('Is in middle of the array', () => {
     const result = findInsertPoint(arr, id, 2);
-    expect(result).toEqual([ InsertType.UpdateAt, 1 ]);
+    expect(result).toEqual([InsertType.UpdateAt, 1]);
   });
 
   it('Is in middle of the array but non-existant', () => {
     const result = findInsertPoint(arr, id, 3);
-    expect(result).toEqual([ InsertType.InsertAfter, 1 ]);
+    expect(result).toEqual([InsertType.InsertAfter, 1]);
   });
 
   it('Is in exactly after a gap', () => {
     const arr = A.range(0, 99).filter((x) => x <= 40 || x >= 60);
     const result = findInsertPoint(arr, id, 60);
-    expect(result).toEqual([ InsertType.UpdateAt, 41 ]);
+    expect(result).toEqual([InsertType.UpdateAt, 41]);
   });
 
   it('Is in exactly after a gap, reversed', () => {
     const arr = pipe(A.range(0, 99), A.filter((x) => x <= 40 || x >= 60), A.reverse);
     const result = findInsertPointReversed(arr, id, 39);
-    expect(result).toEqual([ InsertType.UpdateAt, 41 ]);
+    expect(result).toEqual([InsertType.UpdateAt, 41]);
   });
 
   it('Is in middle of the array but non-existant with filtered search', () => {
     const arr = A.range(0, 79).filter((x) => x <= 40 || x >= 60);
     const result = findInsertPoint(arr, id, 44, 40);
-    expect(result).toEqual([ InsertType.InsertAfter, 40 ]);
+    expect(result).toEqual([InsertType.InsertAfter, 40]);
   });
 
   it('Is in end of the array', () => {
     const result = findInsertPoint(arr, id, 5);
-    expect(result).toEqual([ InsertType.UpdateAt, 2 ]);
+    expect(result).toEqual([InsertType.UpdateAt, 2]);
   });
 
   it('After the end of the array', () => {
     const result = findInsertPoint(arr, id, 6);
-    expect(result).toEqual([ InsertType.InsertAfter, 2 ]);
+    expect(result).toEqual([InsertType.InsertAfter, 2]);
   });
 });
 

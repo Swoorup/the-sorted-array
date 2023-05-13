@@ -1,1 +1,1 @@
-export * from "./SortedArray";
+export * as SA from "./SortedArray";
