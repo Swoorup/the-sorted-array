@@ -128,11 +128,11 @@ export function searchRange<Item, Key extends number>(
   return { from, to };
 }
 
-export function* range<Item, Key extends number>(
+export function* rangei<Item, Key extends number>(
   target: readonly Item[],
   selectKeyFn: (element: Item) => Key,
   range: Range<Key>
-): Generator<Item> {
+): Generator<[index: number, value: Item]> {
   const { from, to } = searchRange(target, selectKeyFn, range);
 
   if (!from || !to) {
@@ -155,7 +155,17 @@ export function* range<Item, Key extends number>(
   endIndex = Math.min(Math.max(0, endIndex), target.length - 1);
 
   for (let i = startIndex; i <= endIndex; i++) {
-    yield target[i];
+    yield [i, target[i]];
+  }
+}
+
+export function* range<Item, Key extends number>(
+  target: readonly Item[],
+  selectKeyFn: (element: Item) => Key,
+  range: Range<Key>
+): Generator<Item> {
+  for (const [_, item] of rangei(target, selectKeyFn, range)) {
+    yield item;
   }
 }
 
